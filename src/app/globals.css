@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design tokens
+   Everything visual on the site derives from these. Change a value here and
+   the whole site follows — never hard-code a hex in a component.
+   ========================================================================== */
+:root {
+  /* Surfaces */
+  --void: #050505; /* page background — a hair off pure black so it isn't dead */
+  --void-raised: #0c0c0d; /* cards, overlays, loader */
+  --hairline: rgb(237 237 237 / 0.1); /* 1px dividers */
+
+  /* Ink */
+  --bone: #ededed; /* primary text */
+  --ash: rgb(237 237 237 / 0.5); /* metadata, secondary text */
+
+  /* The ONE accent. Icy, slightly metallic blue — used sparingly. */
+  --ice: #b8d4e8;
+  --ice-deep: #6f93ad;
+
+  /* Motion — CSS mirrors of the GSAP defaults in src/lib/gsap.ts */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  /* Layout */
+  --gutter: clamp(1rem, 2.5vw, 2.5rem);
+}
+
+/* Expose tokens to Tailwind as utilities: bg-void, text-bone, text-ash, border-hairline, ... */
+@theme inline {
+  --color-void: var(--void);
+  --color-void-raised: var(--void-raised);
+  --color-hairline: var(--hairline);
+  --color-bone: var(--bone);
+  --color-ash: var(--ash);
+  --color-ice: var(--ice);
+  --color-ice-deep: var(--ice-deep);
+
+  --font-sans: var(--font-display);
+  --font-mono: var(--font-meta);
+
+  --ease-expo: var(--ease-expo);
+  --ease-in-out-quart: var(--ease-in-out-quart);
+
+  --spacing-gutter: var(--gutter);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+html {
+  background: var(--void);
+  color: var(--bone);
+  color-scheme: dark;
+  /* Kill the grey flash when tapping on mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--void);
+  color: var(--bone);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 300;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--ice);
+  color: var(--void);
+}
+
+/* ==========================================================================
+   Type primitives
+   ========================================================================== */
+
+/* Massive, razor-thin display type. Fluid from phone to ultrawide. */
+.type-display {
+  font-weight: 200;
+  font-size: clamp(3.25rem, 11.5vw, 13rem);
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+}
+
+/* Small technical metadata: "(01) — SELECTED WORK" */
+.type-meta {
+  font-family: var(--font-meta), ui-monospace, monospace;
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Elements that GSAP reveals start hidden, so there's no flash of unstyled
+   text before JS runs. JS removes this by setting visibility itself. With no
+   JS / reduced motion they're shown immediately (see below). */
+[data-reveal] {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    visibility: visible;
+  }
+}
+
+/* Subtle film grain over everything — the difference between "flat black"
+   and "expensive black". Pure CSS, no image request. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Tiny "scroll" cue in the hero: a sliver of light running down a hairline. */
+@keyframes scroll-cue {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+/* SplitText masks each line with overflow:clip. At line-height 0.88 that would
+   cut off descenders (the "g" in Orgi), so give every line some room at the
+   bottom and take it back with a negative margin — the layout doesn't move. */
+.split-line {
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
