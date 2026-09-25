@@ -19,6 +19,7 @@ import { useMemo, useRef, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Float, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
+import { markSceneReady } from "@/lib/intro";
 
 /* ------------------------------------------------------------------ */
 /* Shader                                                              */
@@ -204,6 +205,8 @@ export default function HeroScene({
       eventPrefix="client"
       // Off-screen → no frames at all. Reduced motion → render once, then still.
       frameloop={!active ? "never" : reducedMotion ? "demand" : "always"}
+      // Tell the loader once the first frame has actually been drawn.
+      onCreated={() => requestAnimationFrame(() => requestAnimationFrame(markSceneReady))}
     >
       {/* Fog matches the page colour, so things pushed back dissolve into the void. */}
       <fog attach="fog" args={["#050505", 5, 11]} />

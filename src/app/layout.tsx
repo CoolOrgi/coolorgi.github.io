@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
+import { Loader } from "@/components/loader/Loader";
+import { Cursor } from "@/components/cursor/Cursor";
 import "./globals.css";
 
 /**
@@ -49,14 +51,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${meta.variable}`}>
+    <html lang="en" className={`${display.variable} ${meta.variable} is-loading`}>
       <head>
         {/* Without JS nothing would ever reveal [data-reveal] — show it all. */}
         <noscript>
-          <style>{`[data-reveal]{visibility:visible!important}`}</style>
+          <style>{`[data-reveal]{visibility:visible!important}html.is-loading{overflow:auto!important}[data-loader]{display:none!important}`}</style>
         </noscript>
       </head>
       <body className="grain">
+        <Loader />
+        <Cursor />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>

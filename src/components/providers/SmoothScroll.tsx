@@ -17,11 +17,21 @@ import { useEffect, type ReactNode } from "react";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { isIntroDone, onIntroDone } from "@/lib/intro";
+import { setLenis } from "@/lib/lenis";
 
 export function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
+    // Always start at the top: the loader + hero intro assume it, and restoring
+    // a mid-page position behind the loader would skip the whole opening.
+    history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+
+    // After the loader lifts, sections have their final sizes — recompute triggers.
+    const offIntro = onIntroDone(() => ScrollTrigger.refresh());
+
     // People who ask their OS for reduced motion get native scrolling, no inertia.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return offIntro;
 
     const lenis = new Lenis({
       autoRaf: false,
@@ -34,7 +44,12 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       anchors: true,
     });
 
+    setLenis(lenis);
     lenis.on("scroll", ScrollTrigger.update);
+
+    // Scroll stays locked while the loader covers the page.
+    if (!isIntroDone()) lenis.stop();
+    const offUnlock = onIntroDone(() => lenis.start());
 
     // gsap.ticker hands us seconds; Lenis wants milliseconds.
     const tick = (time: number) => lenis.raf(time * 1000);
@@ -44,7 +59,10 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      offIntro();
+      offUnlock();
       gsap.ticker.remove(tick);
+      setLenis(null);
       lenis.destroy();
     };
   }, []);

@@ -17,13 +17,24 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "@/lib/gsap";
-import { useReducedMotion } from "@/lib/useReducedMotion";
+import { useReducedMotion } from "@/lib/useMediaQuery";
+import { isIntroDone, onIntroDone } from "@/lib/intro";
+import { nav } from "@/content/site";
 
 // three.js is ~600 kB — keep it out of the server render and the first JS chunk.
 const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
 
-/** Delay before the intro starts. The Loader will replace this with a "ready" signal. */
-const INTRO_DELAY = 0.2;
+/** Small offset after the loader hands over, so the wipe leads and the text follows. */
+const INTRO_DELAY = 0.1;
+
+/** Build a tween paused, and start it the moment the loader lifts. */
+function afterIntro<T extends gsap.core.Animation>(anim: T): T {
+  if (!isIntroDone()) {
+    anim.pause();
+    onIntroDone(() => anim.play());
+  }
+  return anim;
+}
 
 export function Hero() {
   const root = useRef<HTMLElement>(null);
@@ -62,7 +73,7 @@ export function Hero() {
           linesClass: "split-line",
           autoSplit: true,
           onSplit: (self) =>
-            gsap.from(self.lines, {
+            afterIntro(gsap.from(self.lines, {
               yPercent: 115,
               rotate: 2.5, // slight tilt that settles flat — reads as "physical"
               transformOrigin: "0% 100%",
@@ -70,11 +81,11 @@ export function Hero() {
               stagger: 0.09,
               ease: "expo.out",
               delay: INTRO_DELAY,
-            }),
+            })),
         });
 
         // 2. Metadata: wipe in left→right, staggered, like a terminal printing.
-        gsap.fromTo(
+        afterIntro(gsap.fromTo(
           "[data-hero-meta]",
           { visibility: "visible", clipPath: "inset(0 100% 0 0)" },
           {
@@ -84,7 +95,7 @@ export function Hero() {
             stagger: 0.06,
             delay: INTRO_DELAY + 0.5,
           },
-        );
+        ));
 
         // 3. Scroll-out: scrubbed to the scrollbar (via Lenis → ScrollTrigger).
         const tl = gsap.timeline({
@@ -147,9 +158,13 @@ export function Hero() {
         <span data-reveal data-hero-meta className="text-bone">
           Orgi®
         </span>
-        <span data-reveal data-hero-meta className="hidden md:block">
-          Creative Developer
-        </span>
+        <nav data-reveal data-hero-meta aria-label="Primary" className="hidden gap-4 md:flex">
+          {nav.map((n) => (
+            <a key={n.href} href={n.href} className="text-bone transition-colors hover:text-ice">
+              {n.label}
+            </a>
+          ))}
+        </nav>
         <span data-reveal data-hero-meta className="hidden md:block">
           Based in Albania
         </span>
@@ -183,6 +198,7 @@ export function Hero() {
           data-reveal
           data-hero-meta
           href="#about"
+          data-cursor="link"
           className="group flex items-center gap-2 text-bone transition-colors hover:text-ice"
         >
           <span className="relative block h-3 w-px overflow-hidden bg-hairline">

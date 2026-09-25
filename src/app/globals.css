@@ -132,3 +132,14 @@ body {
   padding-bottom: 0.12em;
   margin-bottom: -0.12em;
 }
+
+/* Locked while the loader is up (touch devices scroll natively, outside Lenis). */
+html.is-loading {
+  overflow: hidden;
+}
+
+/* The custom cursor replaces the native one — only when it's actually running. */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
