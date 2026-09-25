@@ -39,8 +39,11 @@ export const projects: Project[] = [
   {
     slug: "drita-studios",
     title: "Drita Studios",
-    description: "Studio identity and web presence. Drita — Albanian for “light”.",
-    category: "Studio · Identity",
+    description:
+      "Independent digital studio — fast, modern websites for businesses, with the UI/UX designed free up front.",
+    category: "Studio · Web",
+    domain: "drita.studio",
+    url: "https://drita.studio",
     image: "/media/work/drita.jpg",
   },
 ];
